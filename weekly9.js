@@ -432,7 +432,7 @@ const wavePause = 1.66;
 modelLoader.load('models/marketStand.glb', (gltf) => {
     const marketStand = gltf.scene;
     marketStand.position.set(-5, 0, 3);
-    marketStand.scale.set(5, 5, 5);
+    marketStand.scale.set(6, 6, 6);
     scene.add(marketStand);
 });
 
@@ -468,6 +468,20 @@ modelLoader.load('models/king.glb', (gltf) => {
     kingWaveAction = mixer.clipAction(waveClip);
     kingWalkAction.play();
     mixers.push(mixer);
+});
+
+modelLoader.load('models/witch.glb', (gltf) => {
+
+        const witch = gltf.scene;
+        witch.position.set(-8, 0, 3);
+        witch.rotation.y = Math.PI / 2;
+        witch.scale.set(2.2, 2.2, 2.2);
+        scene.add(witch);
+
+        const mixer = new THREE.AnimationMixer(witch);
+        const action = mixer.clipAction(gltf.animations[23]);
+        action.play();
+        mixers.push(mixer);
 });
 
 
