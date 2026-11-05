@@ -415,6 +415,8 @@ for (const [x, z, s] of rockData) {
 // ----------------------------------------------------
 
 const modelLoader = new GLTFLoader();
+
+// Market Stand
 modelLoader.load('models/marketStand.glb', (gltf) => {
     const marketStand = gltf.scene;
     marketStand.position.set(-5, 0, 3);
@@ -422,6 +424,26 @@ modelLoader.load('models/marketStand.glb', (gltf) => {
     scene.add(marketStand);
 });
 
+// Idle Knight
+
+
+const clock = new THREE.Clock();
+const mixers = [];
+modelLoader.load('models/knight.glb', (gltf) => {
+    const knightPositions = [[3, -10], [-3, -10]];
+
+    knightPositions.forEach(([x, z]) => {
+        const knight = SkeletonUtils.clone(gltf.scene);
+        knight.position.set(x, 0, z);
+        knight.scale.set(0.3, 0.3, 0.3);
+        scene.add(knight);
+
+        const mixer = new THREE.AnimationMixer(knight);
+        const action = mixer.clipAction(gltf.animations[0]);
+        action.play();
+        mixers.push(mixer);
+    });
+});
 
 
 // ----------------------------------------------------
@@ -503,6 +525,11 @@ function animate() {
     requestAnimationFrame(animate);
 
     controls.update();
+
+    const delta = clock.getDelta();
+    for (const mixer of mixers) {
+        mixer.update(delta);
+    }
 
     renderer.render(scene, camera);
 }
