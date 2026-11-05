@@ -420,13 +420,13 @@ const mixers = [];
 let king;
 let kingDirection = 1;
 const kingSpeed = 4;
-const kingMinZ = -10;
+const kingMinZ = -6;
 const kingMaxZ = 10;
 let kingWalkAction;
 let kingWaveAction;
-let kingState = 'Walk';
+let kingState = 'walk';
 let waveTimer = 0;
-const wavePause = 2;
+const wavePause = 1.66;
 
 // Market Stand
 modelLoader.load('models/marketStand.glb', (gltf) => {
@@ -457,12 +457,16 @@ modelLoader.load('models/knight.glb', (gltf) => {
 modelLoader.load('models/king.glb', (gltf) => {
     king = gltf.scene;
     king.position.set(0, 0, kingMinZ);
+    king.rotation.y = kingDirection > 0 ? 0 : Math.PI;
     king.scale.set(2.2, 2.2, 2.2);
     scene.add(king);
 
     const mixer = new THREE.AnimationMixer(king);
-    const action = mixer.clipAction(gltf.animations[22]);
-    action.play();
+
+    kingWalkAction = mixer.clipAction(gltf.animations[22]);
+    const waveClip = gltf.animations[23];
+    kingWaveAction = mixer.clipAction(waveClip);
+    kingWalkAction.play();
     mixers.push(mixer);
 });
 
@@ -553,19 +557,33 @@ function animate() {
     }
 
     if (king) {
-        king.position.z += kingDirection * kingSpeed * delta;
-        if (king.position.z >= kingMaxZ) {
-            king.position.z = kingMaxZ;
-            kingDirection = -1;
-            king.rotation.y = Math.PI;
-        } else if (king.position.z <= kingMinZ) {
-            king.position.z = kingMinZ;
-            kingDirection = 1;
-            king.rotation.y = Math.PI;
+        if (kingState === 'walk') {
+            king.position.z += kingDirection * kingSpeed * delta;
+
+            const end = kingDirection > 0 && king.position.z >= kingMaxZ;
+            const start = kingDirection < 0 && king.position.z <= kingMinZ;
+
+            if (end || start) {
+                king.position.z = end ? kingMaxZ : kingMinZ;
+                
+                kingWalkAction.fadeOut(0.2);
+                kingWaveAction.reset().fadeIn(0.2).play();
+
+                kingState = "wave";
+                waveTimer = wavePause;
+            }
+        } else if (kingState === 'wave') {
+            waveTimer -= delta;
+
+            if (waveTimer <= 0) {
+                kingWaveAction.fadeOut(0.2);
+                kingWalkAction.reset().fadeIn(0.2).play();
+                kingDirection *= -1;
+                king.rotation.y = kingDirection > 0 ? 0 : Math.PI;
+                kingState = 'walk';
+            }
         }
     }
-    
-
     renderer.render(scene, camera);
 }
 
