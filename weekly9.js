@@ -415,6 +415,18 @@ for (const [x, z, s] of rockData) {
 // ----------------------------------------------------
 
 const modelLoader = new GLTFLoader();
+const clock = new THREE.Clock();
+const mixers = [];
+let king;
+let kingDirection = 1;
+const kingSpeed = 4;
+const kingMinZ = -10;
+const kingMaxZ = 10;
+let kingWalkAction;
+let kingWaveAction;
+let kingState = 'Walk';
+let waveTimer = 0;
+const wavePause = 2;
 
 // Market Stand
 modelLoader.load('models/marketStand.glb', (gltf) => {
@@ -424,11 +436,7 @@ modelLoader.load('models/marketStand.glb', (gltf) => {
     scene.add(marketStand);
 });
 
-// Idle Knight
-
-
-const clock = new THREE.Clock();
-const mixers = [];
+// Idle Knights
 modelLoader.load('models/knight.glb', (gltf) => {
     const knightPositions = [[3, -10], [-3, -10]];
 
@@ -443,6 +451,19 @@ modelLoader.load('models/knight.glb', (gltf) => {
         action.play();
         mixers.push(mixer);
     });
+});
+
+// King walking
+modelLoader.load('models/king.glb', (gltf) => {
+    king = gltf.scene;
+    king.position.set(0, 0, kingMinZ);
+    king.scale.set(2.2, 2.2, 2.2);
+    scene.add(king);
+
+    const mixer = new THREE.AnimationMixer(king);
+    const action = mixer.clipAction(gltf.animations[22]);
+    action.play();
+    mixers.push(mixer);
 });
 
 
@@ -530,6 +551,20 @@ function animate() {
     for (const mixer of mixers) {
         mixer.update(delta);
     }
+
+    if (king) {
+        king.position.z += kingDirection * kingSpeed * delta;
+        if (king.position.z >= kingMaxZ) {
+            king.position.z = kingMaxZ;
+            kingDirection = -1;
+            king.rotation.y = Math.PI;
+        } else if (king.position.z <= kingMinZ) {
+            king.position.z = kingMinZ;
+            kingDirection = 1;
+            king.rotation.y = Math.PI;
+        }
+    }
+    
 
     renderer.render(scene, camera);
 }
