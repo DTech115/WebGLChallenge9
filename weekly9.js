@@ -2,6 +2,15 @@ import * as THREE from 'three';
 
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
+import { GLTFLoader }
+from 'https://unpkg.com/three@0.179.1/examples/jsm/loaders/GLTFLoader.js';
+
+import * as SkeletonUtils
+from 'https://unpkg.com/three@0.179.1/examples/jsm/utils/SkeletonUtils.js';
+
+import { RGBELoader }
+from 'https://unpkg.com/three@0.179.1/examples/jsm/loaders/RGBELoader.js';
+
 // ----------------------------------------------------
 // Scene
 // ----------------------------------------------------
@@ -400,6 +409,20 @@ for (const [x, z, s] of rockData) {
     rock.position.set(x, s * 0.5, z);
     scene.add(rock);
 }
+
+// ----------------------------------------------------
+// MODELS
+// ----------------------------------------------------
+
+const modelLoader = new GLTFLoader();
+modelLoader.load('models/marketStand.glb', (gltf) => {
+    const marketStand = gltf.scene;
+    marketStand.position.set(-5, 0, 3);
+    marketStand.scale.set(5, 5, 5);
+    scene.add(marketStand);
+});
+
+
 
 // ----------------------------------------------------
 // Shadows: every mesh casts and receives
