@@ -489,6 +489,11 @@ modelLoader.load('models/shrekToothlessDance.glb', (gltf) => {
     shrek.position.set(0, 7, -12);
     shrek.scale.set(2, 2, 2);
     scene.add(shrek);
+
+    const mixer = new THREE.AnimationMixer(shrek);
+    const action = mixer.clipAction(gltf.animations[0]);
+    action.play();
+    mixers.push(mixer);
 });
 
 
