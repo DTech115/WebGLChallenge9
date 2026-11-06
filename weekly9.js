@@ -471,17 +471,24 @@ modelLoader.load('models/king.glb', (gltf) => {
 });
 
 modelLoader.load('models/witch.glb', (gltf) => {
+    const witch = gltf.scene;
+    witch.position.set(-8, 0, 3);
+    witch.rotation.y = Math.PI / 2;
+    witch.scale.set(2.2, 2.2, 2.2);
+    scene.add(witch);
 
-        const witch = gltf.scene;
-        witch.position.set(-8, 0, 3);
-        witch.rotation.y = Math.PI / 2;
-        witch.scale.set(2.2, 2.2, 2.2);
-        scene.add(witch);
+    const mixer = new THREE.AnimationMixer(witch);
+    const action = mixer.clipAction(gltf.animations[23]);
+    action.play();
+    mixers.push(mixer);
+});
 
-        const mixer = new THREE.AnimationMixer(witch);
-        const action = mixer.clipAction(gltf.animations[23]);
-        action.play();
-        mixers.push(mixer);
+// SHREK
+modelLoader.load('models/shrekToothlessDance.glb', (gltf) => {
+    const shrek = gltf.scene;
+    shrek.position.set(0, 7, -12);
+    shrek.scale.set(2, 2, 2);
+    scene.add(shrek);
 });
 
 
