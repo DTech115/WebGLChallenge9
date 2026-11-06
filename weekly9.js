@@ -29,6 +29,9 @@ const camera = new THREE.PerspectiveCamera(
 
 camera.position.set(20, 15, 20);
 
+// OBSTACLES LIST
+const obstacles = [];
+
 // ----------------------------------------------------
 // Renderer
 // ----------------------------------------------------
@@ -51,7 +54,18 @@ controls.enableDamping = true;
 controls.dampingFactor = 0.05;
 controls.target.set(0, 3, -2);
 
+// KEY CONTROLS
+window.addEventListener(
+    'keydown',
+    (e) => keys[e.key] = true
+);
+window.addEventListener(
+    'keyup',
+    (e) => keys[e.key] = false
+);
 
+
+// TEXTURE LOADER
 const loader = new THREE.TextureLoader();
 
 
@@ -118,6 +132,7 @@ const backWall = new THREE.Mesh(
 );
 backWall.position.set(0, 4, -12);
 scene.add(backWall);
+obstacles.push(backWall);
 
 // Side walls
 const leftWall = new THREE.Mesh(
@@ -126,6 +141,7 @@ const leftWall = new THREE.Mesh(
 );
 leftWall.position.set(-14.25, 4, 1.4);
 scene.add(leftWall);
+obstacles.push(leftWall);
 
 const rightWall = new THREE.Mesh(
     new THREE.BoxGeometry(1.5, 8, 25),
@@ -133,6 +149,7 @@ const rightWall = new THREE.Mesh(
 );
 rightWall.position.set(14.25, 4, 1.4);
 scene.add(rightWall);
+obstacles.push(rightWall);
 
 // Crenellations along the top of the back wall
 for (let x = -14; x <= 14; x += 4) {
@@ -166,6 +183,7 @@ for (const x of [-15, 15]) {
     );
     tower.position.set(x, 5.5, -12);
     scene.add(tower);
+    obstacles.push(tower);
 
     const roof = new THREE.Mesh(
         new THREE.ConeGeometry(3.4, 4.5, 24),
@@ -197,6 +215,7 @@ const gate = new THREE.Mesh(
 );
 gate.position.set(0, 2.5, -11.05);
 scene.add(gate);
+obstacles.push(gate);
 
 // Iron bands
 
@@ -305,6 +324,7 @@ for (const [x, y, z] of cratePositions) {
     );
     crate.position.set(x, y, z);
     scene.add(crate);
+    obstacles.push(crate);
 }
 
 // ====================================================
@@ -326,6 +346,7 @@ for (const [x, z] of barrelPositions) {
     );
     barrel.position.set(x, 0.65, z);
     scene.add(barrel);
+    obstacles.push(barrel);
 
     for (const y of [0.3, 1.0]) {
         const hoop = new THREE.Mesh(
@@ -346,6 +367,7 @@ const wellBase = new THREE.Mesh(
 );
 wellBase.position.set(6.5, 0.55, 1.5);
 scene.add(wellBase);
+obstacles.push(wellBase);
 
 const waterColor = loader.load("textures/water/water 0342.jpg");
 const waterNormal = loader.load("textures/water/water 0342normal.jpg");
@@ -408,6 +430,7 @@ for (const [x, z, s] of rockData) {
     rock.scale.set(s, s * 0.7, s);
     rock.position.set(x, s * 0.5, z);
     scene.add(rock);
+    obstacles.push(rock);
 }
 
 // ----------------------------------------------------
@@ -417,6 +440,10 @@ for (const [x, z, s] of rockData) {
 const modelLoader = new GLTFLoader();
 const clock = new THREE.Clock();
 const mixers = [];
+const keys = {};
+let player;
+let playerDirection = 1;
+const playerSpeed = 0.1;
 let king;
 let kingDirection = 1;
 const kingSpeed = 4;
@@ -428,12 +455,20 @@ let kingState = 'walk';
 let waveTimer = 0;
 const wavePause = 1.66;
 
+// PLAYER [horse]
+modelLoader.load('models/horse.glb', (gltf) => {
+    player = gltf.scene;
+    player.position.set(0, 0, 15);
+    scene.add(player);
+});
+
 // Market Stand
 modelLoader.load('models/marketStand.glb', (gltf) => {
     const marketStand = gltf.scene;
     marketStand.position.set(-5, 0, 3);
     marketStand.scale.set(6, 6, 6);
     scene.add(marketStand);
+    obstacles.push(marketStand);
 });
 
 // Idle Knights
@@ -445,6 +480,7 @@ modelLoader.load('models/knight.glb', (gltf) => {
         knight.position.set(x, 0, z);
         knight.scale.set(0.3, 0.3, 0.3);
         scene.add(knight);
+        obstacles.push(knight);
 
         const mixer = new THREE.AnimationMixer(knight);
         const action = mixer.clipAction(gltf.animations[0]);
@@ -460,6 +496,7 @@ modelLoader.load('models/king.glb', (gltf) => {
     king.rotation.y = kingDirection > 0 ? 0 : Math.PI;
     king.scale.set(2.2, 2.2, 2.2);
     scene.add(king);
+
 
     const mixer = new THREE.AnimationMixer(king);
 
@@ -495,6 +532,7 @@ modelLoader.load('models/shrekToothlessDance.glb', (gltf) => {
     action.play();
     mixers.push(mixer);
 });
+
 
 
 // ----------------------------------------------------
@@ -568,6 +606,23 @@ window.addEventListener("resize", () => {
     );
 });
 
+
+const playerBox = new THREE.Box3();
+const kingBox = new THREE.Box3();
+const obstacleBox = new THREE.Box3();
+
+function playerCollision() {
+    playerBox.setFromObject(player);
+
+    for (const obstacle of obstacles) {
+        obstacleBox.setFromObject(obstacle);
+        if (playerBox.intersectsBox(obstacleBox)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 // ----------------------------------------------------
 // Animation Loop
 // ----------------------------------------------------
@@ -585,6 +640,19 @@ function animate() {
     if (king) {
         if (kingState === 'walk') {
             king.position.z += kingDirection * kingSpeed * delta;
+            
+            kingBox.setFromObject(king);
+
+            for (const obstacle of obstacles) {
+                obstacleBox.setFromObject(obstacle);
+                obstacleBox.expandByScalar(-5);
+
+                if (kingBox.intersectsBox(obstacleBox)) {
+                    kingDirection *= -1;
+                    king.rotation.y = kingDirection > 0 ? 0 : Math.PI;
+                    break;
+                }
+            }
 
             const end = kingDirection > 0 && king.position.z >= kingMaxZ;
             const start = kingDirection < 0 && king.position.z <= kingMinZ;
@@ -610,6 +678,42 @@ function animate() {
             }
         }
     }
+
+    const oldPosition = new THREE.Vector3();
+
+    if (player) {
+        let dx = 0;
+        let dz = 0;
+        
+        if(keys["ArrowUp"])
+        {
+            dz -= playerSpeed;
+        }
+        if(keys["ArrowDown"])
+        {
+            dz += playerSpeed;
+        }
+        if(keys["ArrowLeft"])
+        {
+            dx -= playerSpeed;
+        }
+        if(keys["ArrowRight"])
+        {
+            dx += playerSpeed;
+        }
+
+        player.position.x += dx;
+        if (dx !== 0 && playerCollision()) {
+            player.position.x -= dx;
+        }
+
+        player.position.z += dz;
+        if (dz !== 0 && playerCollision()) {
+            player.position.z -= dz;
+        }
+    }
+
+
     renderer.render(scene, camera);
 }
 
