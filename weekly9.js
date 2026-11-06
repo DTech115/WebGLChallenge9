@@ -442,8 +442,7 @@ const clock = new THREE.Clock();
 const mixers = [];
 const keys = {};
 let player;
-let playerDirection = 1;
-const playerSpeed = 0.1;
+const playerSpeed = 0.08;
 let king;
 let kingDirection = 1;
 const kingSpeed = 4;
@@ -459,6 +458,7 @@ const wavePause = 1.66;
 modelLoader.load('models/horse.glb', (gltf) => {
     player = gltf.scene;
     player.position.set(0, 0, 15);
+    player.rotation.y = Math.PI;
     scene.add(player);
 });
 
@@ -679,28 +679,23 @@ function animate() {
         }
     }
 
-    const oldPosition = new THREE.Vector3();
-
     if (player) {
-        let dx = 0;
-        let dz = 0;
+        // let dx = 0;
+        // let dz = 0;
         
-        if(keys["ArrowUp"])
-        {
-            dz -= playerSpeed;
-        }
-        if(keys["ArrowDown"])
-        {
-            dz += playerSpeed;
-        }
         if(keys["ArrowLeft"])
         {
-            dx -= playerSpeed;
+            player.rotation.y += 2.5 * delta;
         }
         if(keys["ArrowRight"])
         {
-            dx += playerSpeed;
+            player.rotation.y -= 2.5 * delta;
         }
+        
+        const forward = (keys['ArrowUp'] ? 1 : 0) - (keys['ArrowDown'] ? 1 : 0);
+        const dx = Math.sin(player.rotation.y) * playerSpeed * forward;
+        const dz = Math.cos(player.rotation.y) * playerSpeed * forward;
+    
 
         player.position.x += dx;
         if (dx !== 0 && playerCollision()) {
