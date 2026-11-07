@@ -458,7 +458,7 @@ let playerWalkAction;
 let playerCurrentAction;
 
 // PLAYER [horse]
-modelLoader.load('models/horse.glb', (gltf) => {
+modelLoader.load('models/donkey.glb', (gltf) => {
     player = gltf.scene;
     player.position.set(0, 0, 15);
     player.rotation.y = Math.PI;
@@ -544,6 +544,25 @@ modelLoader.load('models/shrekToothlessDance.glb', (gltf) => {
     mixers.push(mixer);
 });
 
+// stable
+modelLoader.load('models/stable.glb', (gltf) => {
+    const stable = gltf.scene;
+    stable.position.set(13, 0, 28);
+    stable.rotation.y = -Math.PI / 2;
+    stable.scale.set(3, 3, 3);
+    scene.add(stable);
+    obstacles.push(stable);
+});
+
+// inn
+modelLoader.load('models/inn.glb', (gltf) => {
+    const inn = gltf.scene;
+    inn.position.set(-13, 0, 26);
+    inn.rotation.y = -Math.PI / 2;
+    inn.scale.set(3, 3, 3);
+    scene.add(inn);
+    obstacles.push(inn);
+});
 
 
 // ----------------------------------------------------
