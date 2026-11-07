@@ -565,36 +565,29 @@ modelLoader.load('models/inn.glb', (gltf) => {
 });
 
 // horses for stable
-modelLoader.load('models/horse.glb', (gltf) => {
-    const horsePositions = [[23, 28], [5, 28]];
+function spawnStableHorses(file, positions) {
+    modelLoader.load(file, (gltf) => {
+        const idleIDs = [10, 11, 12];
 
-    horsePositions.forEach(([x, z]) => {
-        const horse = SkeletonUtils.clone(gltf.scene);
-        horse.position.set(x, 0, z);
-        scene.add(horse);
-        obstacles.push(horse);
+        positions.forEach(([x, z]) => {
+            const horse = SkeletonUtils.clone(gltf.scene);
+            horse.position.set(x, 0, z);
+            horse.rotation.y = Math.random() < 0.5 ? 0 : Math.PI;
+            scene.add(horse);
+            obstacles.push(horse);
 
-        const mixer = new THREE.AnimationMixer(horse);
-        const action = mixer.clipAction(gltf.animations[10]);
-        action.play();
-        mixers.push(mixer);
+            const mixer = new THREE.AnimationMixer(horse);
+            const pick = idleIDs[Math.floor(Math.random() * idleIDs.length)];
+            const action = mixer.clipAction(gltf.animations[pick]);
+            action.time = Math.random() * action.getClip().duration;
+            action.play();
+            mixers.push(mixer);
+        });
     });
-});
-modelLoader.load('models/whiteHorse.glb', (gltf) => {
-    const horsePositions = [[31, 28], [13, 28]];
+}
 
-    horsePositions.forEach(([x, z]) => {
-        const horse = SkeletonUtils.clone(gltf.scene);
-        horse.position.set(x, 0, z);
-        scene.add(horse);
-        obstacles.push(horse);
-
-        const mixer = new THREE.AnimationMixer(horse);
-        const action = mixer.clipAction(gltf.animations[10]);
-        action.play();
-        mixers.push(mixer);
-    });
-});
+spawnStableHorses('models/horse.glb', [[23, 28], [5, 28]]);
+spawnStableHorses('models/whiteHorse.glb', [[31, 28], [13, 28]]);
 
 // ----------------------------------------------------
 // Shadows: every mesh casts and receives
