@@ -430,7 +430,6 @@ for (const [x, z, s] of rockData) {
     rock.scale.set(s, s * 0.7, s);
     rock.position.set(x, s * 0.5, z);
     scene.add(rock);
-    obstacles.push(rock);
 }
 
 // ----------------------------------------------------
@@ -453,6 +452,10 @@ let kingWaveAction;
 let kingState = 'walk';
 let waveTimer = 0;
 const wavePause = 1.66;
+let playerMixer;
+let playerIdleAction;
+let playerWalkAction;
+let playerCurrentAction;
 
 // PLAYER [horse]
 modelLoader.load('models/horse.glb', (gltf) => {
@@ -460,6 +463,14 @@ modelLoader.load('models/horse.glb', (gltf) => {
     player.position.set(0, 0, 15);
     player.rotation.y = Math.PI;
     scene.add(player);
+
+    playerMixer = new THREE.AnimationMixer(player);
+    playerIdleAction = playerMixer.clipAction(gltf.animations[12]);
+    playerWalkAction = playerMixer.clipAction(gltf.animations[9]);
+
+    playerIdleAction.play();
+    playerCurrentAction = playerIdleAction;
+    mixers.push(playerMixer);
 });
 
 // Market Stand
@@ -611,6 +622,7 @@ const playerBox = new THREE.Box3();
 const kingBox = new THREE.Box3();
 const obstacleBox = new THREE.Box3();
 
+// helper function
 function playerCollision() {
     playerBox.setFromObject(player);
 
@@ -621,6 +633,16 @@ function playerCollision() {
         }
     }
     return false;
+}
+
+// for animation changes
+function setAction(next) {
+    if (next === playerCurrentAction) {
+        return;
+    }
+    next.reset().fadeIn(0.2).play();
+    playerCurrentAction.fadeOut(0.2);
+    playerCurrentAction = next;
 }
 
 // ----------------------------------------------------
@@ -706,6 +728,13 @@ function animate() {
         if (dz !== 0 && playerCollision()) {
             player.position.z -= dz;
         }
+
+        const turning = keys['ArrowLeft'] || keys['ArrowRight'];
+        const moving = forward !== 0 || !!turning;
+
+        const pureTurn = forward === 0 && turning;
+        playerWalkAction.timeScale = (forward < 0 ? -1 : 1) * (pureTurn ? 0.5 : 1);
+        setAction(moving ? playerWalkAction : playerIdleAction);
     }
 
 
