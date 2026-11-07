@@ -547,7 +547,7 @@ modelLoader.load('models/shrekToothlessDance.glb', (gltf) => {
 // stable
 modelLoader.load('models/stable.glb', (gltf) => {
     const stable = gltf.scene;
-    stable.position.set(13, 0, 28);
+    stable.position.set(18, 0, 28);
     stable.rotation.y = -Math.PI / 2;
     stable.scale.set(3, 3, 3);
     scene.add(stable);
@@ -557,9 +557,9 @@ modelLoader.load('models/stable.glb', (gltf) => {
 // inn
 modelLoader.load('models/inn.glb', (gltf) => {
     const inn = gltf.scene;
-    inn.position.set(-13, 0, 26);
+    inn.position.set(-17, 0, 26);
     inn.rotation.y = -Math.PI / 2;
-    inn.scale.set(3, 3, 3);
+    inn.scale.set(5, 5, 5);
     scene.add(inn);
     obstacles.push(inn);
 });
