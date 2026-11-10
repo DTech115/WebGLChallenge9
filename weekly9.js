@@ -438,8 +438,10 @@ for (const [x, z, s] of rockData) {
 
 const modelLoader = new GLTFLoader();
 const clock = new THREE.Clock();
+const walkers = [];
 const mixers = [];
 const keys = {};
+const obstacleBoxes = obstacles.map(m => new THREE.Box3().setFromObject(m));
 let player;
 const playerSpeed = 0.08;
 let king;
@@ -457,7 +459,7 @@ let playerIdleAction;
 let playerWalkAction;
 let playerCurrentAction;
 
-// PLAYER [horse]
+// PLAYER [donkey]
 modelLoader.load('models/donkey.glb', (gltf) => {
     player = gltf.scene;
     player.position.set(0, 0, 15);
@@ -518,9 +520,10 @@ modelLoader.load('models/king.glb', (gltf) => {
     mixers.push(mixer);
 });
 
+// witch
 modelLoader.load('models/witch.glb', (gltf) => {
     const witch = gltf.scene;
-    witch.position.set(-8, 0, 3);
+    witch.position.set(-8.5, 0, 3);
     witch.rotation.y = Math.PI / 2;
     witch.scale.set(2.2, 2.2, 2.2);
     scene.add(witch);
@@ -542,6 +545,27 @@ modelLoader.load('models/shrekToothlessDance.glb', (gltf) => {
     const action = mixer.clipAction(gltf.animations[0]);
     action.play();
     mixers.push(mixer);
+});
+
+// adventurers walking
+modelLoader.load('models/adventurer.glb', (gltf) => {
+    const spawns = [[3, 0], [-2, 8], [9, -5], [-18, 10], [28, 25], [0, 0]];
+
+    spawns.forEach(([x, z]) => {
+        const adventurer = SkeletonUtils.clone(gltf.scene);
+        adventurer.position.set(x, 0, z);
+        adventurer.rotation.y = Math.random() * Math.PI * 2;
+        adventurer.scale.set(2.2, 2.2, 2.2);
+        scene.add(adventurer);
+
+        const mixer = new THREE.AnimationMixer(adventurer);
+        const action = mixer.clipAction(gltf.animations[22]);
+        action.time = Math.random() * action.getClip().duration;
+        action.play();
+        mixers.push(mixer);
+
+        addWalker(adventurer, 3, 1.2)   // model, speed, hitbox size
+    })
 });
 
 // stable
@@ -588,6 +612,50 @@ function spawnStableHorses(file, positions) {
 
 spawnStableHorses('models/horse.glb', [[23, 28], [5, 28]]);
 spawnStableHorses('models/whiteHorse.glb', [[31, 28], [13, 28]]);
+
+//function for walking peoples, add once per model after loading
+function addWalker(model, speed = 1.5, size = 1) {
+    walkers.push({
+        model, speed,
+        box: new THREE.Box3(),
+        size: new THREE.Vector3(size, 2, size),
+        wanderTimer: 1 + Math.random() * 3
+    })
+}
+
+const nextPos = new THREE.Vector3();
+const center = new THREE.Vector3();
+
+// updates for walking direction/angle/hitbox
+function updateWalker(walker, dt) {
+
+    // nudge heading every few seconds
+    walker.wanderTimer -= dt;
+    if (walker.wanderTimer <= 0) {
+        walker.model.rotation.y += (Math.random() - 0.5) * 1.2;
+        walker.wanderTimer = 2 + Math.random() * 4;
+    }
+
+    // where would I be next frame?
+    const angle = walker.model.rotation.y;
+    nextPos.set(
+        walker.model.position.x + Math.sin(angle) * walker.speed * dt,
+        walker.model.position.y,
+        walker.model.position.z + Math.cos(angle) * walker.speed * dt
+    );
+
+    //hitbox around there
+    center.copy(nextPos).setY(nextPos.y + 1);
+    walker.box.setFromCenterAndSize(center, walker.size);
+
+    //if blocked, turn around
+    if (obstacleBoxes.some(b => walker.box.intersectsBox(b))) {
+        walker.model.rotation.y += Math.PI + (Math.random() - 0.5) * 0.8;
+    } else {
+        walker.model.position.copy(nextPos);
+    }
+}
+
 
 // ----------------------------------------------------
 // Shadows: every mesh casts and receives
@@ -663,7 +731,7 @@ window.addEventListener("resize", () => {
 
 const playerBox = new THREE.Box3();
 const kingBox = new THREE.Box3();
-const obstacleBox = new THREE.Box3();
+let obstacleBox = new THREE.Box3();
 
 // helper function
 function playerCollision() {
@@ -701,6 +769,9 @@ function animate() {
     for (const mixer of mixers) {
         mixer.update(delta);
     }
+
+    const dt = Math.min(delta, 0.1);
+    walkers.forEach(walker => updateWalker(walker, dt));
 
     if (king) {
         if (kingState === 'walk') {
