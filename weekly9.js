@@ -450,7 +450,7 @@ for (const [x, z, s] of rockData) {
 // ----------------------------------------------------
 // MODELS
 // ----------------------------------------------------
-const SHOW_HITBOXES = true; 
+const SHOW_HITBOXES = false; 
 
 // adds hitbox block manually
 function addHitbox(x, z, width, depth, height = 4) {
@@ -468,7 +468,8 @@ addHitbox(-17, 26, 12, 14, 8);   // inn
 addHitbox(18, 29, 34, 9, 8);     // stable (covers the horses too)
 addHitbox(3, -10, 1.2, 1.2);     // knight
 addHitbox(-3, -10, 1.2, 1.2);    // knight
-addHitbox(-23, -30, 12, 14, 10);      // market 
+addHitbox(-13, -30, 20, 20, 6);      // market 1
+addHitbox(15, -30, 20, 20, 6);      // market 2
 
 const modelLoader = new GLTFLoader();
 const clock = new THREE.Clock();
@@ -624,6 +625,31 @@ modelLoader.load('models/adventurer.glb', (gltf) => {
 });
 
 // chickens!!!
+modelLoader.load('models/chicken.glb', (gltf) => {
+    const spawns = [[3, 2], [-1, 3], [5, -5], [-1, 4]];
+
+    spawns.forEach(([x, z]) => {
+        const chicken = new THREE.Group();
+        chicken.position.set(x, 1, z);
+        chicken.rotation.y = Math.random() * Math.PI * 2;
+
+        const chickenModel = SkeletonUtils.clone(gltf.scene);
+        chickenModel.rotation.y = Math.PI / 2;
+        chickenModel.scale.set(0.5, 0.5, 0.5);
+        chicken.add(chickenModel);
+        scene.add(chicken);
+
+        addWalker(chicken, 3, 1.2)   // model, speed, hitbox size
+    })
+});
+
+// waffle
+modelLoader.load('models/waffle.glb', (gltf) => {
+    const waffle = gltf.scene;
+    waffle.position.set(15.5, 0.8, 0);
+    waffle.rotation.z = -Math.PI / 3;
+    scene.add(waffle);
+});
 
 // stable
 modelLoader.load('models/stable.glb', (gltf) => {
