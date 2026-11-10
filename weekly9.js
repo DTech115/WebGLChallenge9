@@ -437,6 +437,7 @@ for (const [x, z, s] of rockData) {
 // ----------------------------------------------------
 const SHOW_HITBOXES = true; 
 
+// adds hitbox block manually
 function addHitbox(x, z, width, depth, height = 4) {
     const block = new THREE.Mesh(
         new THREE.BoxGeometry(width, height, depth),
@@ -537,7 +538,7 @@ modelLoader.load('models/king.glb', (gltf) => {
     mixers.push(mixer);
 });
 
-// witch
+// witch stand
 modelLoader.load('models/witch.glb', (gltf) => {
     const witch = gltf.scene;
     witch.position.set(-8.5, 0, 3);
@@ -549,6 +550,27 @@ modelLoader.load('models/witch.glb', (gltf) => {
     const action = mixer.clipAction(gltf.animations[23]);
     action.play();
     mixers.push(mixer);
+});
+
+// witch walker
+modelLoader.load('models/witch.glb', (gltf) => {
+    const spawns = [[-8.5, 0, 5], [-8.5, 0, 2]];
+
+    spawns.forEach(([x, z]) => {
+        const witch = SkeletonUtils.clone(gltf.scene);
+        witch.position.set(x, 0, z);
+        witch.rotation.y = Math.random() * Math.PI * 2;
+        witch.scale.set(2.2, 2.2, 2.2);
+        scene.add(witch);
+
+        const mixer = new THREE.AnimationMixer(witch);
+        const action = mixer.clipAction(gltf.animations[22]);
+        action.time = Math.random() * action.getClip().duration;
+        action.play();
+        mixers.push(mixer);
+
+        addWalker(witch, 3, 1.2)   // model, speed, hitbox size
+    })
 });
 
 // SHREK
@@ -644,6 +666,7 @@ function addWalker(model, speed = 1.5, size = 1) {
 
 const nextPos = new THREE.Vector3();
 const center = new THREE.Vector3();
+const mapLimit = 40;
 
 // updates for walking direction/angle/hitbox
 function updateWalker(walker, dt) {
@@ -667,18 +690,10 @@ function updateWalker(walker, dt) {
     center.copy(nextPos).setY(nextPos.y + 1);
     walker.box.setFromCenterAndSize(center, walker.size);
 
-    //if blocked, turn around
-    const hit = obstacleBoxes.findIndex(b => walker.box.intersectsBox(b));
+    //if blocked or map limit, turn around
+    const outOfBounds = Math.abs(nextPos.x) > mapLimit || Math.abs(nextPos.z) > mapLimit;
 
-    if (hit !== -1) {
-        if (hit !== -1 && !walker.logged) {
-            walker.logged = true;   // only log once per walker
-            console.log(
-                'blocked by obstacle', hit,
-                obstacles[hit].name,
-                'size:', obstacleBoxes[hit].getSize(new THREE.Vector3())
-            );
-        }
+    if (outOfBounds || obstacleBoxes.some(b => walker.box.intersectsBox(b))) {
         walker.model.rotation.y += Math.PI + (Math.random() - 0.5) * 0.8;
     } else {
         walker.model.position.copy(nextPos);
