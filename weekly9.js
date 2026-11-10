@@ -465,7 +465,7 @@ function addHitbox(x, z, width, depth, height = 4) {
 
 addHitbox(-5, 3, 5, 4);          // market stand
 addHitbox(-17, 26, 12, 14, 8);   // inn
-addHitbox(20, 29, 30, 9, 8);     // stable (covers the horses too)
+addHitbox(18, 29, 34, 9, 8);     // stable (covers the horses too)
 addHitbox(3, -10, 1.2, 1.2);     // knight
 addHitbox(-3, -10, 1.2, 1.2);    // knight
 addHitbox(-23, -30, 12, 14, 10);      // market 
