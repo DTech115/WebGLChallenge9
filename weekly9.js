@@ -208,7 +208,7 @@ const gateMaterial   = new THREE.MeshStandardMaterial({
     roughnessMap: gateRoughness
 }); // gate, beams, posts
 
-
+//gate front
 const gate = new THREE.Mesh(
     new THREE.BoxGeometry(4, 5, 0.4),
     gateMaterial
@@ -216,9 +216,16 @@ const gate = new THREE.Mesh(
 gate.position.set(0, 2.5, -11.05);
 scene.add(gate);
 obstacles.push(gate);
+//gate back
+const gateBack = new THREE.Mesh(
+    new THREE.BoxGeometry(4, 5, 0.4),
+    gateMaterial
+);
+gateBack.position.set(0, 2.5, -13.05);
+scene.add(gateBack);
+obstacles.push(gateBack);
 
 // Iron bands
-
 const metalColor = loader.load("textures/metal/metal_plate_02_diff_1k.png");
 const metalNormal = loader.load("textures/metal/metal_plate_02_nor_gl_1k.png");
 const metalRoughness = loader.load("textures/metal/metal_plate_02_rough_1k.png");
@@ -236,6 +243,14 @@ for (const y of [1, 4]) {
     );
     band.position.set(0, y, -10.8);
     scene.add(band);
+}
+for (const y of [1, 4]) {
+    const bandBack = new THREE.Mesh(
+        new THREE.BoxGeometry(4.1, 0.25, 0.1),
+        metalMaterial
+    );
+    bandBack.position.set(0, y, -13.3);
+    scene.add(bandBack);
 }
 
 // ====================================================
@@ -450,9 +465,10 @@ function addHitbox(x, z, width, depth, height = 4) {
 
 addHitbox(-5, 3, 5, 4);          // market stand
 addHitbox(-17, 26, 12, 14, 8);   // inn
-addHitbox(18, 28, 25, 8, 6);     // stable (covers the horses too)
+addHitbox(20, 29, 30, 9, 8);     // stable (covers the horses too)
 addHitbox(3, -10, 1.2, 1.2);     // knight
 addHitbox(-3, -10, 1.2, 1.2);    // knight
+addHitbox(-23, -30, 12, 14, 10);      // market 
 
 const modelLoader = new GLTFLoader();
 const clock = new THREE.Clock();
