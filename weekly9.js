@@ -629,6 +629,21 @@ modelLoader.load('models/inn.glb', (gltf) => {
     // obstacles.push(inn);
 });
 
+// market stalls
+modelLoader.load('models/marketstalls.glb', (gltf) => {
+    const stalls = gltf.scene;
+    stalls.position.set(-13, 0, -30);
+    stalls.scale.set(10, 10, 10);
+    scene.add(stalls);
+});
+modelLoader.load('models/marketstalls.glb', (gltf) => {
+    const stalls = gltf.scene;
+    stalls.position.set(15, 0, -30);
+    stalls.rotation.y = -Math.PI / 2;
+    stalls.scale.set(10, 10, 10);
+    scene.add(stalls);
+});
+
 // horses for stable
 function spawnStableHorses(file, positions) {
     modelLoader.load(file, (gltf) => {
