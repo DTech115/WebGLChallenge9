@@ -435,6 +435,23 @@ for (const [x, z, s] of rockData) {
 // ----------------------------------------------------
 // MODELS
 // ----------------------------------------------------
+const SHOW_HITBOXES = true; 
+
+function addHitbox(x, z, width, depth, height = 4) {
+    const block = new THREE.Mesh(
+        new THREE.BoxGeometry(width, height, depth),
+        new THREE.MeshBasicMaterial({ color: 0xff0000, wireframe: true, visible: SHOW_HITBOXES })
+    );
+    block.position.set(x, height / 2, z);
+    scene.add(block);
+    obstacles.push(block);
+}
+
+addHitbox(-5, 3, 5, 4);          // market stand
+addHitbox(-17, 26, 12, 14, 8);   // inn
+addHitbox(18, 28, 25, 8, 6);     // stable (covers the horses too)
+addHitbox(3, -10, 1.2, 1.2);     // knight
+addHitbox(-3, -10, 1.2, 1.2);    // knight
 
 const modelLoader = new GLTFLoader();
 const clock = new THREE.Clock();
@@ -481,7 +498,7 @@ modelLoader.load('models/marketStand.glb', (gltf) => {
     marketStand.position.set(-5, 0, 3);
     marketStand.scale.set(6, 6, 6);
     scene.add(marketStand);
-    obstacles.push(marketStand);
+    // obstacles.push(marketStand);
 });
 
 // Idle Knights
@@ -493,7 +510,7 @@ modelLoader.load('models/knight.glb', (gltf) => {
         knight.position.set(x, 0, z);
         knight.scale.set(0.3, 0.3, 0.3);
         scene.add(knight);
-        obstacles.push(knight);
+        // obstacles.push(knight);
 
         const mixer = new THREE.AnimationMixer(knight);
         const action = mixer.clipAction(gltf.animations[0]);
@@ -549,7 +566,7 @@ modelLoader.load('models/shrekToothlessDance.glb', (gltf) => {
 
 // adventurers walking
 modelLoader.load('models/adventurer.glb', (gltf) => {
-    const spawns = [[3, 0], [-2, 8], [9, -5], [-18, 10], [28, 25], [0, 0]];
+    const spawns = [[3, 0], [-2, 8], [9, -5], [-18, 10], [28, 23], [0, 0]];
 
     spawns.forEach(([x, z]) => {
         const adventurer = SkeletonUtils.clone(gltf.scene);
@@ -568,6 +585,8 @@ modelLoader.load('models/adventurer.glb', (gltf) => {
     })
 });
 
+// chickens!!!
+
 // stable
 modelLoader.load('models/stable.glb', (gltf) => {
     const stable = gltf.scene;
@@ -575,7 +594,7 @@ modelLoader.load('models/stable.glb', (gltf) => {
     stable.rotation.y = -Math.PI / 2;
     stable.scale.set(3, 3, 3);
     scene.add(stable);
-    obstacles.push(stable);
+    // obstacles.push(stable);
 });
 
 // inn
@@ -585,7 +604,7 @@ modelLoader.load('models/inn.glb', (gltf) => {
     inn.rotation.y = -Math.PI / 2;
     inn.scale.set(5, 5, 5);
     scene.add(inn);
-    obstacles.push(inn);
+    // obstacles.push(inn);
 });
 
 // horses for stable
@@ -598,7 +617,7 @@ function spawnStableHorses(file, positions) {
             horse.position.set(x, 0, z);
             horse.rotation.y = Math.random() < 0.5 ? 0 : Math.PI;
             scene.add(horse);
-            obstacles.push(horse);
+            // obstacles.push(horse);
 
             const mixer = new THREE.AnimationMixer(horse);
             const pick = idleIDs[Math.floor(Math.random() * idleIDs.length)];
@@ -649,7 +668,17 @@ function updateWalker(walker, dt) {
     walker.box.setFromCenterAndSize(center, walker.size);
 
     //if blocked, turn around
-    if (obstacleBoxes.some(b => walker.box.intersectsBox(b))) {
+    const hit = obstacleBoxes.findIndex(b => walker.box.intersectsBox(b));
+
+    if (hit !== -1) {
+        if (hit !== -1 && !walker.logged) {
+            walker.logged = true;   // only log once per walker
+            console.log(
+                'blocked by obstacle', hit,
+                obstacles[hit].name,
+                'size:', obstacleBoxes[hit].getSize(new THREE.Vector3())
+            );
+        }
         walker.model.rotation.y += Math.PI + (Math.random() - 0.5) * 0.8;
     } else {
         walker.model.position.copy(nextPos);
