@@ -9,27 +9,31 @@
         body {
             margin: 0;
             overflow: hidden;
+            font-family: Arial, sans-serif;
         }
 
-        canvas {
-            display: block;
-        }
-
-        #toggleButton {
+        #instructions {
             position: absolute;
             top: 10px;
             left: 10px;
+            color: white;
+            background: rgba(0,0,0,0.7);
+            padding: 10px;
             z-index: 100;
-            padding: 10px 15px;
-            font-size: 16px;
-            cursor: pointer;
         }
     </style>
 </head>
 <body>
 
-    <button id="toggleButton">Toggle Lights</button>
-
+    <div id="instructions">
+        <h3>Tank Controls:</h3>
+        <p>
+            Left & right arrows "steer"<br>
+            Up & down arrows "move"<br>
+            Left & right click for camera<br>
+            Scroll to zoom in & out
+        </p>
+    </div>
     <script type="importmap">
         {
             "imports": {

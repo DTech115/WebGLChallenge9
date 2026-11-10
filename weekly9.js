@@ -798,20 +798,6 @@ directionalLight.shadow.mapSize.set(2048, 2048);
 
 scene.add(directionalLight);
 
-// ----------------------------------------------------
-// Toggle Lights
-// ----------------------------------------------------
-let lightsOn = true;
-
-document
-    .getElementById("toggleButton")
-    .addEventListener("click", () => {
-
-        lightsOn = !lightsOn;
-
-        ambientLight.visible = lightsOn;
-        directionalLight.visible = lightsOn;
-    });
 
 // ----------------------------------------------------
 // Window Resize
